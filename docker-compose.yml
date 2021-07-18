@@ -1,0 +1,8 @@
+version: "3"
+
+services:
+  app:
+    build: .
+    command: echo 'usage `docker compose run --rm app bin/start`'
+    volumes:
+      - .:/ruby-doc-flashcard

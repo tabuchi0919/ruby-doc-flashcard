@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'shellwords'
+
+MASTER_PATH = 'db/master/methods'
+PROGRESS_PATH = 'db/progress/methods'
+unless File.exist?(MASTER_PATH) && File.exist?(PROGRESS_PATH)
+  puts 'Execute `docker compose run --rm app bin/setup`'
+  exit
+end
+
+METHODS = File.read(MASTER_PATH).split
+LEARNED_METHODS = File.read(PROGRESS_PATH).split
+remaining_methods = METHODS - LEARNED_METHODS
+
+ROUND = 10
+
+def print_method(method)
+  print "\e[32m"
+  print '+'
+  print '-' * (method.length + 2)
+  puts '+'
+  print '| '
+  print "\e[1m"
+  print method
+  print "\e[0m\e[32m"
+  puts ' |'
+  print '+'
+  print '-' * (method.length + 2)
+  puts '+'
+  print "\e[39m"
+end
+
+correct_count = 0
+
+ROUND.times do |i|
+  puts '-' * 80
+  puts "ROUND: #{i + 1}/#{ROUND}"
+  puts "正解数: #{correct_count}/#{i}"
+  puts "残り総数: #{remaining_methods.count}"
+  puts '-' * 80
+  method = remaining_methods.sample
+  print_method(method)
+  command = "bitclust lookup --method=#{Shellwords.escape(method)}"
+  puts `#{command}`
+  puts '覚えた？(y/n)'
+  input = gets.chomp
+  case input
+  when 'y'
+    correct_count += 1
+    remaining_methods.delete(method)
+    File.open(PROGRESS_PATH, 'a') do |f|
+      f.write("#{method}\n")
+    end
+  end
+end

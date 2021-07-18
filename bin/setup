@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+ALL_METHODS = `bitclust list --method`.split
+
+TARGET_CLASSES = %w[
+  BasicObject
+  Object
+  Array
+  Enumrator
+  FalseClass
+  Hash
+  IO
+  File
+  MatchData
+  Module
+  Class
+  NillClass
+  Numeric
+  Float
+  Integer
+  Rational
+  Proc
+  Range
+  Regexp
+  String
+  Struct
+  Symbol
+  Time
+  TrueClass
+].freeze
+
+TARGET_MODULES = %w[
+  Comparable
+  Enumerable
+  Kernel
+  Math
+].freeze
+
+TARGET_OBJECTS = %w[
+  ENV
+  main
+].freeze
+
+target_methods = ALL_METHODS.filter do |m|
+  [*TARGET_CLASSES, *TARGET_MODULES, *TARGET_OBJECTS].any? do |c|
+    m.start_with?("#{c}.") || m.start_with?("#{c}#")
+  end
+end
+
+require 'fileutils'
+
+FileUtils.mkdir_p('db/master')
+FileUtils.mkdir_p('db/progress')
+File.write('db/master/methods', target_methods.join("\n"))
+File.write('db/progress/methods', '')
+
+puts 'success'
